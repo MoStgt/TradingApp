@@ -32,8 +32,8 @@
                 <tbody>
                     {% for stock in stocks %}
                     <tr>
-                        <td>{{stock.symbol}}</td>
-                        <td><a href="/stock/{{stock.symbol}}">{{stock.name}}</a> </td>
+                        <td>{{ stock.symbol }}</td>
+                        <td><a href="/stock/{{ stock.symbol }}">{{ stock.name }}</a> </td>
                         {% if indicator_values[stock.symbol] %}
                             <td>{{ indicator_values[stock.symbol].close }}</td>
                             {% if indicator_values[stock.symbol].rsi_14 %}
@@ -54,7 +54,6 @@
                         {% endif %}
                     </tr>
                     {% endfor %}
-
                 </tbody>
 
             </table>

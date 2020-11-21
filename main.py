@@ -45,11 +45,11 @@ def index(request: Request):
 
     rows = cursor.fetchall()
 
-    #current_date = date.today().isoformat()
+    current_date = date.today().isoformat()
     cursor.execute("""
         select symbol, rsi_14, sma_20, sma_50, close
-        from stock join stock_price on stock_price.stock_id = stock_id
-        where date = (select max(date) from stock_price)
+        from stock join stock_price on stock_price.stock_id = stock.id
+        where date = '2020-11-20';
         """)
 
     indicator_rows = cursor.fetchall()
@@ -57,6 +57,8 @@ def index(request: Request):
 
     for row in indicator_rows:
         indicator_values[row['symbol']] = row
+
+    print(indicator_values)
 
     return templates.TemplateResponse("index.html", {"request": request, "stocks": rows, "indicator_values": indicator_values})
 

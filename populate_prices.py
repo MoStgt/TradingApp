@@ -2,6 +2,7 @@ import sqlite3, config
 import alpaca_trade_api as tradeapi
 import tulipy, numpy
 from datetime import date
+import pandas as pd
 
 connection = sqlite3.connect(config.DB_FILE)
 
@@ -26,10 +27,12 @@ for row in rows:
 api = tradeapi.REST(config.API_KEY, config.SECRET_KEY, base_url=config.API_URL)
 
 
+#start = pd.Timestamp('2020-11-20', tz='America/New_York').isoformat()
+
 chunk_size = 200
 for i in range(0, len(symbols), chunk_size):
     symbol_chunk = symbols[i:i+chunk_size]
-    barsets = api.get_barset(symbol_chunk, 'day', after=date.today().isoformat())
+    barsets = api.get_barset(symbol_chunk, 'day', limit=100)
 
     for symbol in barsets:
         print(f"processing symbol {symbol}")
@@ -39,10 +42,12 @@ for i in range(0, len(symbols), chunk_size):
         for bar in barsets[symbol]:
             stock_id = stock_dict[symbol]
 
-            if len(recent_closes) >= 50 and date.today().isoformat() == bar.t.date().isoformat():
+            #if len(recent_closes) >= 50 and date.today().isoformat() == bar.t.date().isoformat():
+            if len(recent_closes) >= 50 and '2020-11-20' == bar.t.date().isoformat():
                 sma_20 = tulipy.sma(numpy.array(recent_closes), period=20)[-1]
                 sma_50 = tulipy.sma(numpy.array(recent_closes), period=50)[-1]
                 rsi_14 = tulipy.rsi(numpy.array(recent_closes), period=14)[-1]
+
             else:
                 sma_20, sma_50, rsi_14 = None, None, None
 
