@@ -4,6 +4,7 @@ import alpaca_trade_api as tradeapi
 from datetime import date
 import pandas as pd
 import smtplib, ssl
+from timezone import is_dst
 
 # Create a secure SSL context
 context = ssl.create_default_context()
@@ -36,8 +37,12 @@ current_date = date.today().isoformat()
 # current_date = "2020-11-17"
 
 # define start and end minute for breakout strategy
-start_minute_bar = f"{current_date}T09:30:00-5:00"
-end_minute_bar = f"{current_date}T10:00:00-5:00"
+if is_dst():
+    start_minute_bar = f"{current_date}T09:30:00-5:00"
+    end_minute_bar = f"{current_date}T10:00:00-5:00"
+else:
+    start_minute_bar = f"{current_date}T09:30:00-4:00"
+    end_minute_bar = f"{current_date}T10:00:00-4:00"
 
 # define timeframe of stocks
 NY = 'America/New_York'
@@ -48,9 +53,8 @@ end = pd.Timestamp(f"{current_date} 16:00", tz=NY).isoformat()
 api = tradeapi.REST(config.API_KEY, config.SECRET_KEY, base_url=config.API_URL)
 
 # check already existing orders (UTC time -> 9.30am New York time)
-orders = api.list_orders(status='open', limit=500, after=f"{current_date}T13:30:00Z")
-existing_order_symbols = [order.symbol for order in orders]
-print(existing_order_symbols)
+orders = api.list_orders(status='all', after=current_date)
+existing_order_symbols = [order.symbol for order in orders if order.status != 'canceled']
 
 # Messages to send as an Email
 messages = []

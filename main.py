@@ -4,6 +4,7 @@ import sqlite3, config
 from fastapi.templating import Jinja2Templates
 from datetime import date
 from fastapi.responses import RedirectResponse
+import alpaca_trade_api as tradeapi
 
 
 
@@ -38,6 +39,57 @@ def index(request: Request):
                 ) where date = (select max(date) from stock_price)
                 """)
 
+    elif stock_filter == 'rsi_overbought':
+        cursor.execute("""
+                            select symbol, name, stock_id, date 
+                            from stock_price join stock on stock.id = stock_price.stock_id
+                            where rsi_14 >70
+                            AND date = (select max(date) from stock_price)
+                            order by symbol
+                        """)
+
+    elif stock_filter == 'rsi_oversold':
+        cursor.execute("""
+                                    select symbol, name, stock_id, date 
+                                    from stock_price join stock on stock.id = stock_price.stock_id
+                                    where rsi_14 < 30
+                                    AND date = (select max(date) from stock_price)
+                                    order by symbol
+                                """)
+    elif stock_filter == 'above_sma_20':
+        cursor.execute("""
+                                    select symbol, name, stock_id, date 
+                                    from stock_price join stock on stock.id = stock_price.stock_id
+                                    where close > sma_20
+                                    AND date = (select max(date) from stock_price)
+                                    order by symbol
+                                """)
+    elif stock_filter == 'below_sma_20':
+        cursor.execute("""
+                                    select symbol, name, stock_id, date 
+                                    from stock_price join stock on stock.id = stock_price.stock_id
+                                    where close < sma_20
+                                    AND date = (select max(date) from stock_price)
+                                    order by symbol
+                                """)
+    elif stock_filter == 'above_sma_50':
+        cursor.execute("""
+                                    select symbol, name, stock_id, date 
+                                    from stock_price join stock on stock.id = stock_price.stock_id
+                                    where close > sma_50
+                                    AND date = (select max(date) from stock_price)
+                                    order by symbol
+                                """)
+
+    elif stock_filter == 'below_sma_50':
+        cursor.execute("""
+                                    select symbol, name, stock_id, date 
+                                    from stock_price join stock on stock.id = stock_price.stock_id
+                                    where close < sma_50
+                                    AND date = (select max(date) from stock_price)
+                                    order by symbol
+                                """)
+
     else:
         cursor.execute("""
             SELECT id, symbol, name FROM stock ORDER BY symbol
@@ -49,7 +101,7 @@ def index(request: Request):
     cursor.execute("""
         select symbol, rsi_14, sma_20, sma_50, close
         from stock join stock_price on stock_price.stock_id = stock.id
-        where date = '2020-11-20';
+        where date = (select max(date) from stock_price);
         """)
 
     indicator_rows = cursor.fetchall()
@@ -57,8 +109,6 @@ def index(request: Request):
 
     for row in indicator_rows:
         indicator_values[row['symbol']] = row
-
-    print(indicator_values)
 
     return templates.TemplateResponse("index.html", {"request": request, "stocks": rows, "indicator_values": indicator_values})
 
@@ -98,6 +148,27 @@ def apply_strategy(strategy_id: int=Form(...), stock_id: int=Form(...)):
 
     connection.commit()
     return RedirectResponse(url=f"/strategy/{strategy_id}", status_code=303)
+
+
+@app.get('/orders')
+def orders(request: Request):
+    api = tradeapi.REST(config.API_KEY, config.SECRET_KEY, base_url=config.API_URL)
+    orders = api.list_orders(status='all')
+
+    return templates.TemplateResponse("orders.html", {"request": request, "orders": orders})
+
+@app.get('/strategies')
+def strategies(request: Request):
+    connection = sqlite3.connect(config.DB_FILE)
+    connection.row_factory = sqlite3.Row
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT * FROM strategy
+    """)
+
+    strategies = cursor.fetchall()
+    return templates.TemplateResponse("strategies.html", {"request": request, "strategies": strategies})
 
 @app.get("/strategy/{strategy_id}")
 def strategy(request: Request, strategy_id):

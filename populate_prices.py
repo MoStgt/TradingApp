@@ -42,8 +42,8 @@ for i in range(0, len(symbols), chunk_size):
         for bar in barsets[symbol]:
             stock_id = stock_dict[symbol]
 
-            #if len(recent_closes) >= 50 and date.today().isoformat() == bar.t.date().isoformat():
-            if len(recent_closes) >= 50 and '2020-11-20' == bar.t.date().isoformat():
+            if len(recent_closes) >= 50 and date.today().isoformat() == bar.t.date().isoformat():
+            #if len(recent_closes) >= 50 and '2020-11-20' == bar.t.date().isoformat():
                 sma_20 = tulipy.sma(numpy.array(recent_closes), period=20)[-1]
                 sma_50 = tulipy.sma(numpy.array(recent_closes), period=50)[-1]
                 rsi_14 = tulipy.rsi(numpy.array(recent_closes), period=14)[-1]
