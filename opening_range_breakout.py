@@ -5,6 +5,7 @@ from datetime import date
 import pandas as pd
 import smtplib, ssl
 from timezone import is_dst
+from helpers import calculate_quantity
 
 # Create a secure SSL context
 context = ssl.create_default_context()
@@ -94,7 +95,7 @@ for symbol in symbols:
                 symbol=symbol,
                 side='buy',
                 type='limit',
-                qty='10',
+                qty=calculate_quantity(limit_price),
                 time_in_force='day',
                 order_class='bracket',
                 limit_price=limit_price,
