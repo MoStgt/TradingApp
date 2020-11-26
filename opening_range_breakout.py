@@ -39,11 +39,11 @@ current_date = date.today().isoformat()
 
 # define start and end minute for breakout strategy
 if is_dst():
-    start_minute_bar = f"{current_date}T09:30:00-5:00"
-    end_minute_bar = f"{current_date}T10:00:00-5:00"
+    start_minute_bar = f"{current_date}T09:30:00-05:00"
+    end_minute_bar = f"{current_date}T10:00:00-05:00"
 else:
-    start_minute_bar = f"{current_date}T09:30:00-4:00"
-    end_minute_bar = f"{current_date}T10:00:00-4:00"
+    start_minute_bar = f"{current_date}T09:30:00-04:00"
+    end_minute_bar = f"{current_date}T10:00:00-04:00"
 
 # define timeframe of stocks
 NY = 'America/New_York'
